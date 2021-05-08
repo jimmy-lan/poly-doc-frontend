@@ -6,7 +6,7 @@ on:
       - master
 jobs:
   build:
-    name: Prepare App
+    name: Prepare & Deploy App
     runs-on: ubuntu-18.04
     steps:
       - name: Get source code
@@ -23,8 +23,10 @@ jobs:
         with:
           path: |
             **/node_modules
-          key: ${{ runner.os }}-js-${{ hashFiles("**/package-lock.json") }}
-      - name: Build
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install npm packages
+        run: npm install
+      - name: Build app
         run: npm run build
       - name: Provide Google Crendentials
         uses: google-github-actions/setup-gcloud@master
@@ -34,9 +36,5 @@ jobs:
       - name: Send to Google Cloud Storage
         uses: google-github-actions/upload-cloud-storage@main
         with:
-          path: build/*
+          path: ./build
           destination: poly-webapp-jimmydoc
-      - name: Show uploaded files
-        uses: foo/bar@master
-        env:
-          file: ${{steps.upload-file.outputs.uploaded}}
