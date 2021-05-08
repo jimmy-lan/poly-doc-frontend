@@ -34,7 +34,10 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
       - name: Send to Google Cloud Storage
-        uses: google-github-actions/upload-cloud-storage@main
+        uses: weslenng/gcp-storage-sync@master
         with:
-          path: ./build
-          destination: poly-webapp-jimmydoc
+          args: -d
+        env:
+          GCP_SERVICE_ACCOUNT_KEY_FILE: ${{ secrets.GCP_SA_KEY }}
+          GCP_STORAGE_BUCKET: ${{ secrets.GCP_BUCKET_NAME }}
+          SOURCE_DIR: "build"
