@@ -1,13 +1,14 @@
+# This GitHub action prettifies code.
 name: CI-Prettier
-
 on:
   push:
     branches:
       - master
+      - develop
   pull_request:
     branches:
       - master
-
+      - develop
 jobs:
   prettier:
     runs-on: ubuntu-latest
