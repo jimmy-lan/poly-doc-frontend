@@ -1,0 +1,42 @@
+# This GitHub action builds the React app for production.
+name: CD-Frontend
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    name: Prepare App
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Get source code
+        uses: actions/checkout@v1
+        with:
+          ref: refs/heads/master
+          fetch-depth: 1
+      - name: Get Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "13.x"
+      - name: Configure cache for future deployments
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-js-${{ hashFiles("**/package-lock.json") }}
+      - name: Build
+        run: npm run build
+      - name: Provide Google Crendentials
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      - name: Send to Google Cloud Storage
+        uses: google-github-actions/upload-cloud-storage@main
+        with:
+          path: build/*
+          destination: poly-webapp-jimmydoc
+      - name: Show uploaded files
+        uses: foo/bar@master
+        env:
+          file: ${{steps.upload-file.outputs.uploaded}}
