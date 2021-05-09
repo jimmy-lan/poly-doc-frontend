@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from "react";
+import { CssBaseline } from "@material-ui/core";
 
 import { TextEditor } from "./components";
-import { CssBaseline } from "@material-ui/core";
 import { useStyles } from "./App.style";
 
 const App: FunctionComponent = () => {
