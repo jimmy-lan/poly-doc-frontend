@@ -7,6 +7,8 @@ import React, { FunctionComponent, useCallback } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 
+import "./TextEditor.style.css";
+
 interface OwnProps {}
 
 type Props = OwnProps;
@@ -23,7 +25,7 @@ const TextEditor: FunctionComponent<Props> = (props) => {
     new Quill(editor, { theme: "snow" });
   }, []);
 
-  return <div id="container" ref={wrapperRef} />;
+  return <div className="container" ref={wrapperRef} />;
 };
 
 export { TextEditor };
