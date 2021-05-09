@@ -1,7 +1,7 @@
-import React from "react";
+import React, { FunctionComponent } from "react";
 import { TextEditor } from "./TextEditor";
 
-const App = (): JSX.Element => {
+const App: FunctionComponent = () => {
   return (
     <div className="App">
       <TextEditor />
