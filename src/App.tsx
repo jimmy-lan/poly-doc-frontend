@@ -1,11 +1,18 @@
 import React, { FunctionComponent } from "react";
-import { TextEditor } from "./TextEditor";
+
+import { TextEditor } from "./components";
+import { CssBaseline } from "@material-ui/core";
+import { useStyles } from "./App.style";
 
 const App: FunctionComponent = () => {
+  const classes = useStyles();
+
   return (
-    <div className="App">
-      <TextEditor />
-    </div>
+    <CssBaseline classes={classes}>
+      <div className="App">
+        <TextEditor />
+      </div>
+    </CssBaseline>
   );
 };
 
