@@ -3,11 +3,18 @@
  * Creation Date: 2021-05-08
  */
 
-import React, { FunctionComponent, HTMLAttributes, useCallback } from "react";
+import React, {
+  FunctionComponent,
+  HTMLAttributes,
+  useCallback,
+  useEffect,
+} from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
+import { io } from "socket.io-client";
 
 import "./TextEditor.style.css";
+import { backendConfig } from "../../config";
 
 interface OwnProps extends HTMLAttributes<HTMLDivElement> {
   /** See https://quilljs.com/docs/modules/toolbar/. */
@@ -42,6 +49,10 @@ const TextEditor: FunctionComponent<Props> = (props) => {
     wrapper.append(editor);
     new Quill(editor, { theme: "snow", modules: { toolbar: toolbarOptions } });
   }, []);
+
+  useEffect(() => {
+    const socket = io(backendConfig.domain);
+  });
 
   return <div className="container" ref={wrapperRef} {...props} />;
 };
