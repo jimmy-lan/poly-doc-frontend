@@ -52,6 +52,10 @@ const TextEditor: FunctionComponent<Props> = (props) => {
 
   useEffect(() => {
     const socket = io(backendConfig.domain);
+
+    return () => {
+      socket.disconnect();
+    };
   });
 
   return <div className="container" ref={wrapperRef} {...props} />;
