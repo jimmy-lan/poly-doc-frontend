@@ -3,11 +3,19 @@
  * Creation Date: 2021-05-08
  */
 
-import React, { FunctionComponent, HTMLAttributes, useCallback } from "react";
-import Quill from "quill";
+import React, {
+  FunctionComponent,
+  HTMLAttributes,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import Quill, { TextChangeHandler } from "quill";
 import "quill/dist/quill.snow.css";
+import { io, Socket } from "socket.io-client";
 
 import "./TextEditor.style.css";
+import { backendConfig } from "../../config";
 
 interface OwnProps extends HTMLAttributes<HTMLDivElement> {
   /** See https://quilljs.com/docs/modules/toolbar/. */
@@ -31,6 +39,55 @@ const TOOLBAR_OPTIONS = [
 
 const TextEditor: FunctionComponent<Props> = (props) => {
   const { toolbarOptions } = props;
+  const [socket, setSocket] = useState<Socket>();
+  const [quill, setQuill] = useState<Quill>();
+
+  // Set up socket on render
+  useEffect(() => {
+    const s = io(backendConfig.domain);
+    setSocket(s);
+
+    return () => {
+      s.disconnect();
+    };
+  });
+
+  // Emit event on changes
+  useEffect(() => {
+    if (!socket || !quill) {
+      return;
+    }
+
+    const handler: TextChangeHandler = (delta, _, source) => {
+      if (source !== "user") {
+        return;
+      }
+      socket.emit("client-changes", delta);
+    };
+
+    quill.on("text-change", handler);
+
+    return () => {
+      quill.off("text-change", handler);
+    };
+  });
+
+  // Update document when receiving changes
+  useEffect(() => {
+    if (!socket || !quill) {
+      return;
+    }
+
+    const handler: TextChangeHandler = (delta) => {
+      quill.updateContents(delta);
+    };
+
+    socket.on("receive-changes", handler);
+
+    return () => {
+      socket.off("receive-changes", handler);
+    };
+  });
 
   // A ref to wrapper of this editor
   const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
@@ -40,7 +97,11 @@ const TextEditor: FunctionComponent<Props> = (props) => {
     wrapper.innerHTML = "";
     const editor = document.createElement("div");
     wrapper.append(editor);
-    new Quill(editor, { theme: "snow", modules: { toolbar: toolbarOptions } });
+    const q = new Quill(editor, {
+      theme: "snow",
+      modules: { toolbar: toolbarOptions },
+    });
+    setQuill(q);
   }, []);
 
   return <div className="container" ref={wrapperRef} {...props} />;
