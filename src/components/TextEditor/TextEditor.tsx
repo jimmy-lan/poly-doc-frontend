@@ -8,10 +8,11 @@ import React, {
   HTMLAttributes,
   useCallback,
   useEffect,
+  useState,
 } from "react";
-import Quill from "quill";
+import Quill, { Sources, TextChangeHandler } from "quill";
 import "quill/dist/quill.snow.css";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 import "./TextEditor.style.css";
 import { backendConfig } from "../../config";
@@ -38,6 +39,38 @@ const TOOLBAR_OPTIONS = [
 
 const TextEditor: FunctionComponent<Props> = (props) => {
   const { toolbarOptions } = props;
+  const [socket, setSocket] = useState<Socket>();
+  const [quill, setQuill] = useState<Quill>();
+
+  // Set up socket on render
+  useEffect(() => {
+    const s = io(backendConfig.domain);
+    setSocket(s);
+
+    return () => {
+      s.disconnect();
+    };
+  });
+
+  // Emit event on changes
+  useEffect(() => {
+    if (!socket || !quill) {
+      return;
+    }
+
+    const handler: TextChangeHandler = (delta, oldDelta, source: Sources) => {
+      if (source !== "user") {
+        return;
+      }
+      socket.emit("client-changes");
+    };
+
+    quill.on("text-change", handler);
+
+    return () => {
+      quill.off("text-change", handler);
+    };
+  });
 
   // A ref to wrapper of this editor
   const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
@@ -47,16 +80,12 @@ const TextEditor: FunctionComponent<Props> = (props) => {
     wrapper.innerHTML = "";
     const editor = document.createElement("div");
     wrapper.append(editor);
-    new Quill(editor, { theme: "snow", modules: { toolbar: toolbarOptions } });
+    const q = new Quill(editor, {
+      theme: "snow",
+      modules: { toolbar: toolbarOptions },
+    });
+    setQuill(q);
   }, []);
-
-  useEffect(() => {
-    const socket = io(backendConfig.domain);
-
-    return () => {
-      socket.disconnect();
-    };
-  });
 
   return <div className="container" ref={wrapperRef} {...props} />;
 };
