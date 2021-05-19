@@ -10,7 +10,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import Quill, { Sources, TextChangeHandler } from "quill";
+import Quill, { TextChangeHandler } from "quill";
 import "quill/dist/quill.snow.css";
 import { io, Socket } from "socket.io-client";
 
@@ -58,17 +58,34 @@ const TextEditor: FunctionComponent<Props> = (props) => {
       return;
     }
 
-    const handler: TextChangeHandler = (delta, oldDelta, source: Sources) => {
+    const handler: TextChangeHandler = (delta, _, source) => {
       if (source !== "user") {
         return;
       }
-      socket.emit("client-changes");
+      socket.emit("client-changes", delta);
     };
 
     quill.on("text-change", handler);
 
     return () => {
       quill.off("text-change", handler);
+    };
+  });
+
+  // Update document when receiving changes
+  useEffect(() => {
+    if (!socket || !quill) {
+      return;
+    }
+
+    const handler: TextChangeHandler = (delta) => {
+      quill.updateContents(delta);
+    };
+
+    socket.on("receive-changes", handler);
+
+    return () => {
+      socket.off("receive-changes", handler);
     };
   });
 
